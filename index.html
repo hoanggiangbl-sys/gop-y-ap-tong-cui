@@ -120,34 +120,44 @@
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = null;
     let isRecording = false;
-    let finalTranscript = '';
 
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
         recognition.lang = 'vi-VN';
         recognition.continuous = true;
-        recognition.interimResults = true;
+        // Tắt interimResults để không bị lặp các từ dự đoán tạm thời
+        recognition.interimResults = false;
 
         recognition.onresult = (event) => {
-            let interimTranscript = '';
+            let newText = '';
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript + ' ';
-                } else {
-                    interimTranscript += event.results[i][0].transcript;
+                    newText += event.results[i][0].transcript + ' ';
                 }
             }
-            speechText.value = finalTranscript + interimTranscript;
-            updateCharCount();
+            if (newText) {
+                // Nối phần văn bản vừa nói hoàn chỉnh vào khung hiện tại
+                speechText.value = (speechText.value ? speechText.value.trim() + ' ' : '') + newText.trim();
+                updateCharCount();
+            }
         };
 
         recognition.onerror = (e) => {
             console.error('Lỗi nhận diện giọng nói:', e.error);
-            stopRecording();
+            if (e.error !== 'no-speech') {
+                stopRecording();
+            }
         };
 
         recognition.onend = () => {
-            if (isRecording) stopRecording();
+            // Tự động bật lại nhận diện nếu người dùng chưa bấm nút dừng hẳn
+            if (isRecording) {
+                try {
+                    recognition.start();
+                } catch (err) {
+                    console.log('Tái khởi động giọng nói...');
+                }
+            }
         };
     } else {
         micHint.textContent = 'Trình duyệt không hỗ trợ micro. Vui lòng gõ chữ!';
@@ -162,9 +172,8 @@
 
         if (!isRecording) {
             try {
-                finalTranscript = speechText.value ? speechText.value + ' ' : '';
-                recognition.start();
                 isRecording = true;
+                recognition.start();
                 micBtn.classList.add('recording');
                 micHint.textContent = 'Đang lắng nghe... Bấm lại để DỪNG';
                 micHint.style.color = '#ff3b30';
@@ -188,14 +197,10 @@
         charCount.textContent = `Đã nhập: ${speechText.value.length} ký tự`;
     }
 
-    speechText.addEventListener('input', () => {
-        finalTranscript = speechText.value;
-        updateCharCount();
-    });
+    speechText.addEventListener('input', updateCharCount);
 
     clearBtn.addEventListener('click', () => {
         speechText.value = '';
-        finalTranscript = '';
         updateCharCount();
     });
 
@@ -253,7 +258,7 @@
         const address = document.getElementById('address').value.trim();
         const content = speechText.value.trim();
 
-        // Kiểm tra định dạng SĐT (Phải đúng 10 số và bắt đầu bằng số 0)
+        // Kiểm tra SĐT chuẩn 10 số bắt đầu bằng 0
         const phoneRegex = /^0[0-9]{9}$/;
         if (!phoneRegex.test(phone)) {
             alert('Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 chữ số và bắt đầu bằng số 0 (Ví dụ: 0987123456).');
@@ -279,7 +284,6 @@
             alert('Gửi phản ánh thành công! Cảm ơn ý kiến đóng góp của cử trì.');
             document.getElementById('feedbackForm').reset();
             speechText.value = '';
-            finalTranscript = '';
             removeImage();
             updateCharCount();
         }).catch((err) => {

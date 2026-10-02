@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hòm Thư Góp Ý Giọng Nói - Ấp Tổng Cui</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
+        .card { background: #ffffff; width: 100%; max-width: 420px; border: 2px solid #2b7fff; border-radius: 20px; padding: 24px 20px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h2 { color: #1a66ff; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .header p { color: #65676b; font-size: 13px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-weight: 700; font-size: 14px; color: #1c1e21; margin-bottom: 6px; }
+        .form-group label i { color: #1a66ff; margin-right: 4px; }
+        .form-control { width: 100%; padding: 12px 14px; border: 1px solid #cccccc; border-radius: 10px; font-size: 14px; outline: none; }
+        .mic-section { text-align: center; margin: 20px 0 15px 0; }
+        .mic-btn { width: 80px; height: 80px; background-color: #ff3b30; border-radius: 50%; border: none; color: white; font-size: 32px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4); display: inline-flex; justify-content: center; align-items: center; transition: transform 0.2s; }
+        .mic-btn:hover { transform: scale(1.05); }
+        .mic-btn.recording { animation: pulse 1.2s infinite; background-color: #d70015; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); } 70% { box-shadow: 0 0 0 18px rgba(255, 59, 48, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); } }
+        .mic-hint { color: #1a66ff; font-weight: 700; font-size: 13.5px; margin-top: 10px; }
+        .textarea-container { position: relative; margin-top: 15px; }
+        textarea.form-control { height: 140px; resize: none; background-color: #f8f9fa; color: #495057; font-size: 14px; line-height: 1.5; }
+        .textarea-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 12px; color: #65676b; }
+        .btn-clear { background-color: #ff3b30; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        
+        /* CSS cho đính kèm hình ảnh */
+        .image-upload-box { margin-top: 15px; border: 1px dashed #1a66ff; border-radius: 10px; padding: 12px; text-align: center; background-color: #f0f5ff; }
+        .image-upload-btn { background-color: #e7f0ff; color: #1a66ff; border: 1px solid #1a66ff; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+        .image-preview { margin-top: 10px; display: none; position: relative; }
+        .image-preview img { max-width: 100%; max-height: 180px; border-radius: 8px; border: 1px solid #ddd; object-fit: cover; }
+        .btn-remove-img { position: absolute; top: 5px; right: 5px; background: rgba(255, 59, 48, 0.9); color: white; border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; font-size: 12px; }
+
+        .btn-submit { width: 100%; background-color: #0066ff; color: white; border: none; border-radius: 10px; padding: 14px; font-size: 14px; font-weight: 700; text-transform: uppercase; cursor: pointer; margin-top: 18px; box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3); }
+    </style>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <h2>HÒM THƯ GÓP Ý GIỌNG NÓI</h2>
+        <p>Ban Điều hành Ấp Tổng Cui tiếp nhận 24/7</p>
+    </div>
+
+    <form id="feedbackForm">
+        <div class="form-group">
+            <label><i class="fa-solid fa-user"></i> Họ và tên cử trì (*):</label>
+            <input type="text" id="fullname" class="form-control" placeholder="Nhập đầy đủ họ và tên..." required>
+        </div>
+
+        <div class="form-group">
+            <label><i class="fa-solid fa-phone"></i> Số điện thoại liên hệ (*):</label>
+            <input type="tel" id="phone" class="form-control" placeholder="Nhập số điện thoại (10 số)..." required>
+        </div>
+
+        <div class="mic-section">
+            <button type="button" class="mic-btn" id="micBtn">
+                <i class="fa-solid fa-microphone"></i>
+            </button>
+            <div class="mic-hint" id="micHint">Chạm vào Micro màu đỏ để BẮT ĐẦU nói</div>
+        </div>
+
+        <div class="textarea-container">
+            <textarea id="speechText" class="form-control" placeholder="Nội dung trình bày của cử trì sẽ tự động chuyển thành văn bản và hiển thị ở đây..."></textarea>
+            <div class="textarea-footer">
+                <span id="charCount">Đã nhập: 0 ký tự</span>
+                <button type="button" class="btn-clear" id="clearBtn">
+                    <i class="fa-solid fa-trash-can"></i> Xóa văn bản
+                </button>
+            </div>
+        </div>
+
+        <!-- Mục đính kèm hình ảnh -->
+        <div class="image-upload-box">
+            <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+            <button type="button" class="image-upload-btn" onclick="document.getElementById('imageInput').click()">
+                <i class="fa-solid fa-camera"></i> Đính kèm hình ảnh (nếu có)
+            </button>
+            <div class="image-preview" id="imagePreviewContainer">
+                <img id="imagePreview" src="" alt="Xem trước ảnh">
+                <button type="button" class="btn-remove-img" onclick="removeImage()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">GỬI PHẢN ÁNH THẲNG VỀ BAN ẤP</button>
+    </form>
+</div>
+
+<script>
+    // Cấu hình Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyA_SFBBa-nyabs76mKFV5_Hy6DzZSJtTak",
+      authDomain: "gop-y-ap-tong-cui.firebaseapp.com",
+      databaseURL: "https://gop-y-ap-tong-cui-default-rtdb.firebaseio.com",
+      projectId: "gop-y-ap-tong-cui",
+      storageBucket: "gop-y-ap-tong-cui.firebasestorage.app",
+      messagingSenderId: "1018896034074",
+      appId: "1:1018896034074:web:e86ecf7f33d78c571724a3",
+      measurementId: "G-N4Q3J49HDP"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Xử lý Giọng nói
+    const micBtn = document.getElementById('micBtn');
+    const micHint = document.getElementById('micHint');
+    const speechText = document.getElementById('speechText');
+    const clearBtn = document.getElementById('clearBtn');
+    const charCount = document.getElementById('charCount');
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let isRecording = false;
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'vi-VN';
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onresult = (event) => {
+            let resultText = '';
+            for (let i = 0; i < event.results.length; i++) {
+                resultText += event.results[i][0].transcript;
+            }
+            speechText.value = resultText;
+            updateCharCount();
+        };
+
+        recognition.onerror = (e) => {
+            console.error('Lỗi nhận diện giọng nói:', e.error);
+            stopRecording();
+        };
+
+        recognition.onend = () => {
+            if (isRecording) stopRecording();
+        };
+    } else {
+        micHint.textContent = 'Trình duyệt không hỗ trợ micro. Vui lòng gõ chữ!';
+        micHint.style.color = '#dc3545';
+    }
+
+    micBtn.addEventListener('click', () => {
+        if (!recognition) {
+            alert('Trình duyệt hiện tại không hỗ trợ giọng nói. Vui lòng sử dụng Google Chrome hoặc Microsoft Edge!');
+            return;
+        }
+
+        if (!isRecording) {
+            try {
+                recognition.start();
+                isRecording = true;
+                micBtn.classList.add('recording');
+                micHint.textContent = 'Đang lắng nghe... Bấm lại để DỪNG';
+                micHint.style.color = '#ff3b30';
+            } catch (err) {
+                console.error(err);
+            }
+        } else {
+            stopRecording();
+        }
+    });
+
+    function stopRecording() {
+        isRecording = false;
+        if (recognition) recognition.stop();
+        micBtn.classList.remove('recording');
+        micHint.textContent = 'Chạm vào Micro màu đỏ để BẮT ĐẦU nói';
+        micHint.style.color = '#1a66ff';
+    }
+
+    function updateCharCount() {
+        charCount.textContent = `Đã nhập: ${speechText.value.length} ký tự`;
+    }
+
+    speechText.addEventListener('input', updateCharCount);
+    clearBtn.addEventListener('click', () => {
+        speechText.value = '';
+        updateCharCount();
+    });
+
+    // Xử lý Đính kèm Hình ảnh (Nén & Chuyển sang Base64)
+    let base64Image = '';
+
+    function handleImageSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Kích thước ảnh quá lớn! Vui lòng chọn ảnh nhỏ hơn 5MB.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Nén ảnh nhỏ lại để lưu vào Realtime Database nhanh chóng
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const maxWidth = 800;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                base64Image = canvas.toDataURL('image/jpeg', 0.7);
+                document.getElementById('imagePreview').src = base64Image;
+                document.getElementById('imagePreviewContainer').style.display = 'block';
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeImage() {
+        base64Image = '';
+        document.getElementById('imageInput').value = '';
+        document.getElementById('imagePreview').src = '';
+        document.getElementById('imagePreviewContainer').style.display = 'none';
+    }
+
+    // Gửi phản ánh lên Firebase
+    document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const fullname = document.getElementById('fullname').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const content = speechText.value.trim();
+
+        if (!content && !base64Image) {
+            alert('Vui lòng nhập nội dung góp ý hoặc gửi kèm hình ảnh!');
+            return;
+        }
+
+        const newRef = database.ref('feedbacks').push();
+        newRef.set({
+            fullname: fullname,
+            phone: phone,
+            content: content,
+            imageUrl: base64Image || '',
+            timestamp: new Date().toISOString(),
+            status: 'pending'
+        }).then(() => {
+            alert('Gửi phản ánh thành công! Cảm ơn ý kiến đóng góp của cử trì.');
+            document.getElementById('feedbackForm').reset();
+            speechText.value = '';
+            removeImage();
+            updateCharCount();
+        }).catch((err) => {
+            alert('Lỗi gửi dữ liệu: ' + err.message);
+        });
+    });
+</script>
+
+</body>
+</html>

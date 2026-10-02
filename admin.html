@@ -8,23 +8,21 @@
     <style>
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
-        .container { max-width: 1150px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
         h1 { color: #1a66ff; text-align: center; margin-top: 0; margin-bottom: 20px; font-size: 24px; }
         .controls { display: flex; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; align-items: center; }
         .filter-box { display: flex; gap: 10px; flex-wrap: wrap; }
         input[type="text"], select { padding: 10px 14px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; outline: none; }
         input[type="text"] { width: 250px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #e0e0e0; padding: 12px; text-align: left; vertical-align: middle; font-size: 14px; }
+        th, td { border: 1px solid #e0e0e0; padding: 10px 12px; text-align: left; vertical-align: middle; font-size: 13.5px; }
         th { background: #1a66ff; color: white; font-weight: 600; }
         tr:nth-child(even) { background-color: #f9f9f9; }
         .btn-export { background: #28a745; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 6px; }
-        .btn-delete { background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
-        select.status-select { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; font-weight: 600; }
-        .img-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; }
-        .img-thumb:hover { transform: scale(1.1); transition: transform 0.2s; }
+        .btn-delete { background: #dc3545; color: white; border: none; padding: 7px 10px; border-radius: 6px; cursor: pointer; }
+        select.status-select { padding: 5px 8px; border-radius: 6px; border: 1px solid #ccc; font-weight: 600; font-size: 13px; }
+        .img-thumb { width: 55px; height: 55px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; }
         
-        /* Modal xem ảnh lớn */
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
         .modal img { max-width: 90%; max-height: 90%; border-radius: 8px; }
     </style>
@@ -40,7 +38,7 @@
 
     <div class="controls">
         <div class="filter-box">
-            <input type="text" id="searchInput" placeholder="Tìm theo tên, SĐT, nội dung..." onkeyup="filterData()">
+            <input type="text" id="searchInput" placeholder="Tìm theo tên, SĐT, địa chỉ, nội dung..." onkeyup="filterData()">
             <select id="statusFilter" onchange="filterData()">
                 <option value="all">-- Tất cả trạng thái --</option>
                 <option value="pending">Mới tiếp nhận</option>
@@ -54,23 +52,23 @@
     <table>
         <thead>
             <tr>
-                <th style="width: 5%; text-align: center;">STT</th>
-                <th style="width: 14%">Thời gian gửi</th>
-                <th style="width: 14%">Họ tên cử trì</th>
-                <th style="width: 11%">Số điện thoại</th>
+                <th style="width: 4%; text-align: center;">STT</th>
+                <th style="width: 13%">Thời gian gửi</th>
+                <th style="width: 13%">Họ tên cử trì</th>
+                <th style="width: 10%">Số điện thoại</th>
+                <th style="width: 12%">Địa chỉ / Tổ</th>
                 <th>Nội dung góp ý / Phản ánh</th>
-                <th style="width: 8%; text-align: center;">Hình ảnh</th>
-                <th style="width: 14%">Trạng thái xử lý</th>
-                <th style="width: 5%; text-align: center;">Xóa</th>
+                <th style="width: 7%; text-align: center;">Hình ảnh</th>
+                <th style="width: 13%">Trạng thái</th>
+                <th style="width: 4%; text-align: center;">Xóa</th>
             </tr>
         </thead>
         <tbody id="feedbackList">
-            <tr><td colspan="8" style="text-align: center;">Đang tải dữ liệu từ máy chủ...</td></tr>
+            <tr><td colspan="9" style="text-align: center;">Đang tải dữ liệu từ máy chủ...</td></tr>
         </tbody>
     </table>
 </div>
 
-<!-- Modal phóng to ảnh -->
 <div class="modal" id="imageModal" onclick="this.style.display='none'">
     <img id="modalImg" src="" alt="Ảnh phóng to">
 </div>
@@ -108,7 +106,7 @@
         tbody.innerHTML = '';
 
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; color: #777;">Chưa có dữ liệu phản ánh nào.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 20px; color: #777;">Chưa có dữ liệu phản ánh nào.</td></tr>';
             return;
         }
 
@@ -125,6 +123,7 @@
                 <td>${date}</td>
                 <td><b>${item.fullname || 'Ẩn danh'}</b></td>
                 <td>${item.phone || 'Chưa cung cấp'}</td>
+                <td>${item.address || 'Chưa nhập'}</td>
                 <td>${item.content || ''}</td>
                 <td style="text-align: center;">${imageHtml}</td>
                 <td>
@@ -164,9 +163,10 @@
         const filtered = rawData.filter(item => {
             const fullname = (item.fullname || '').toLowerCase();
             const phone = (item.phone || '').toLowerCase();
+            const address = (item.address || '').toLowerCase();
             const content = (item.content || '').toLowerCase();
 
-            const matchQuery = fullname.includes(query) || phone.includes(query) || content.includes(query);
+            const matchQuery = fullname.includes(query) || phone.includes(query) || address.includes(query) || content.includes(query);
             const matchStatus = status === 'all' || item.status === status;
 
             return matchQuery && matchStatus;
@@ -186,6 +186,7 @@
             "Thời Gian": item.timestamp ? new Date(item.timestamp).toLocaleString('vi-VN') : '',
             "Họ và Tên": item.fullname || '',
             "Số Điện Thoại": item.phone || '',
+            "Địa Chỉ / Tổ": item.address || '',
             "Nội Dung Phản Ánh": item.content || '',
             "Có Hình Ảnh": item.imageUrl ? 'Có' : 'Không',
             "Trạng Thái": item.status === 'pending' ? 'Mới tiếp nhận' : (item.status === 'processing' ? 'Đang xử lý' : 'Đã giải quyết')

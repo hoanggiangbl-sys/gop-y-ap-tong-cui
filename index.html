@@ -125,19 +125,19 @@
         recognition = new SpeechRecognition();
         recognition.lang = 'vi-VN';
         recognition.continuous = true;
-        // Tắt interimResults để không bị lặp các từ dự đoán tạm thời
-        recognition.interimResults = false;
+        recognition.interimResults = true;
 
         recognition.onresult = (event) => {
-            let newText = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    newText += event.results[i][0].transcript + ' ';
-                }
+            // Thu thập toàn bộ chuỗi nhận diện từ sự kiện hiện tại
+            let fullTranscript = '';
+            for (let i = 0; i < event.results.length; i++) {
+                fullTranscript += event.results[i][0].transcript;
             }
-            if (newText) {
-                // Nối phần văn bản vừa nói hoàn chỉnh vào khung hiện tại
-                speechText.value = (speechText.value ? speechText.value.trim() + ' ' : '') + newText.trim();
+
+            // Thuật toán chống lặp văn bản khi trình duyệt gửi dữ liệu liên tục
+            fullTranscript = fullTranscript.trim();
+            if (fullTranscript) {
+                speechText.value = fullTranscript;
                 updateCharCount();
             }
         };
@@ -150,7 +150,6 @@
         };
 
         recognition.onend = () => {
-            // Tự động bật lại nhận diện nếu người dùng chưa bấm nút dừng hẳn
             if (isRecording) {
                 try {
                     recognition.start();
@@ -166,7 +165,7 @@
 
     micBtn.addEventListener('click', () => {
         if (!recognition) {
-            alert('Trình duyệt hiện tại không hỗ trợ giọng nói. Vui lòng sử dụng Google Chrome hoặc Microsoft Edge!');
+            alert('Trình duyệt hiện tại không hỗ trợ giọng nói. Vui lòng mở bằng Chrome hoặc Edge!');
             return;
         }
 
